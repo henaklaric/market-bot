@@ -78,8 +78,8 @@ module.exports = function () {
         },
 
         getRandomAmount: function (max) {
-            let amount = new BigNumber(randomNumber(max));
-            return amount.isEqualTo(0) ? 1 : amount; // to avoid the possibility of creating an order with 0 amount
+            let amount = new BigNumber(Math.abs(randomNumber(max)));
+            return amount.isEqualTo(0) ? new BigNumber(1) : amount; // to avoid the possibility of creating an order with 0 amount
         }
     }
 }
