@@ -7,16 +7,26 @@ async function asyncForEach(array, callback) {
     }
 }
 
+function randomNumber(max) {
+    return Math.floor(Math.random() * max);
+}
+
+function randomFloatInRange(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function randomBool() {
+    return Math.random() >= 0.5;
+}
+
 module.exports = function () {
 
     return {
 
-        // calculates median value of bid and ask order prices
-        // the challenge said "determine best bid and best ask prices for the ETH-USD market" without explaining what are "the best prices"
-        // because I think that calculating best prices is not something that is going to be evaluated
-        // I decided to go with median value instead of min, max or something more complex
-        // (I hope I'm not wrong)
-        getBestOrderPrices: async function (orders) {
+        // after consulting with this great webpage called Google, I realized I made a mistake
+        // if by any chance calculating a mean price was a way to solve this problem, and I deleted it, it would be a shame
+        // :)
+        getMeanOrderPrices: async function (orders) {
 
             let askNo = 0;
             let bidNo = 0;
@@ -24,11 +34,11 @@ module.exports = function () {
             let sumBid = new BigNumber(0);
 
             await asyncForEach(orders, order => {
-                if (BigNumber(order[2]).isGreaterThan(0)) {
-                    sumBid = sumBid.plus(order[0]);
+                if (BigNumber(order[1]).isGreaterThan(0)) {
+                    sumBid = sumBid.plus(order[1]);
                     bidNo++;
                 } else {
-                    sumAsk = sumAsk.plus(order[0]);
+                    sumAsk = sumAsk.plus(order[1]);
                     askNo++;
                 }
             });
@@ -37,6 +47,38 @@ module.exports = function () {
                 ask: sumAsk.dividedBy(askNo),
                 bid: sumBid.dividedBy(bidNo)
             }
+        },
+
+        // get best bid and best ask price
+        // Logic:
+        // The order with lowest price among the "sellorders" is the Ask.
+        // The order with the highest price among the "buyorders" is the Bid.
+        getBestOrderPrices: async function (orders) {
+            let bestBid = new BigNumber(0);
+            let bestAsk = undefined;
+
+            await asyncForEach(orders, order => {
+                if (new BigNumber(order[2]).isGreaterThan(0) && new BigNumber(order[0]).isGreaterThan(bestBid)) {
+                    bestBid = new BigNumber(order[0]);
+                } else if (new BigNumber(order[2]).isLessThan(0) && (new BigNumber(order[0]).isLessThan(bestAsk) || bestAsk === undefined)) {
+                    bestAsk = new BigNumber(order[0]);
+                }
+            });
+
+            return {
+                ask: bestAsk,
+                bid: bestBid
+            }
+        },
+
+        getRandomPrice: function (price) {
+            let randomPercentage = new BigNumber(randomFloatInRange(0, 0.05)); // get random number from 0 to 0.05 eg. 0% to 5%
+            // randomBool() determines if the price will be increased or decreased, 50% chance for both
+            return randomBool() ? price.minus(price.multipliedBy(randomPercentage)) : price.plus(price.multipliedBy(randomPercentage));
+        },
+
+        getRandomAmount: function (max) {
+            return new BigNumber(randomNumber(max));
         }
     }
 }
