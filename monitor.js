@@ -47,7 +47,7 @@ module.exports = function () {
 
                     //get random bid price and amount
                     let randomBidPrice = orderbook().getRandomPrice(bestPrices.bid);
-                    let randomBidAmount = orderbook().getRandomAmount(new BigNumber(assets.USD.amount));
+                    let randomBidAmount = orderbook().getRandomAmount(assets.USD.amount);
 
                     //update balance
                     assets.USD.amount = assets.USD.amount.minus(randomBidAmount);
@@ -78,7 +78,7 @@ module.exports = function () {
                     });
 
                     console.log(strd);
-                    console.log("PLACE ASK @ PRICE: " + randomAskPrice + ", AMOUNT: " + randomAskAmount);
+                    console.log("PLACE ASK @ PRICE: " + randomAskPrice + ", AMOUNT: - " + randomAskAmount);
                 }
 
             });
@@ -92,10 +92,12 @@ module.exports = function () {
                             if (order.status === "pending" && order.type === "ask" && order.price.isLessThan(bestPrices.ask)) {
                                 order.status = "processed";
                                 assets.USD.amount = assets.USD.amount.plus(order.amount.multipliedBy(order.price));
+                                console.log(strd);
                                 console.log("FILLED ASK @ PRICE AMOUNT (ETH - " + order.amount.toFixed(8) + " USD + " + order.amount.multipliedBy(order.price).toFixed(2) + ")");
                             } else if (order.status === "pending" && order.type === "bid" && order.price.isGreaterThan(bestPrices.bid)) {
                                 order.status = "processed";
                                 assets.ETH.amount = assets.ETH.amount.plus(order.amount);
+                                console.log(strd);
                                 console.log("FILLED BID @ PRICE AMOUNT (ETH + " + order.amount.toFixed(8) + " USD - " + order.amount.multipliedBy(order.price).toFixed(2) + ")");
                             }
                         })
